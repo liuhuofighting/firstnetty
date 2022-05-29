@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <head>
+        <meta charset="utf-8">
+        <title>消防主机</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<!--        <script src="../resources/echarts.js"></script>-->
+        <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+        <link rel="stylesheet" href="../resources/layui/css/layui.css">
+<!--        <link rel="stylesheet" href="../main/resources/layui/dist/css/layui.css">-->
+        <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+    </head>
+</head>
+<!--别删-->
+<script type="text/javascript">
+
+    window.CHAT = {
+        socket: null,
+        init: function() {
+            if (window.WebSocket) {
+                CHAT.socket = new WebSocket("ws://localhost:8081/ws");
+                CHAT.socket.onopen = function() {
+                    console.log("连接建立成功...");
+                },
+                    CHAT.socket.onclose = function() {
+                        console.log("连接关闭...");
+                    },
+                    CHAT.socket.onerror = function() {
+                        console.log("发生错误...");
+                    },
+                    CHAT.socket.onmessage = function(e) {
+                        var receiveMsg = document.getElementById("receiveMsg");
+                        var html = receiveMsg.innerHTML;
+                        console.log("接受到消息：" + e.data);
+                         var data=e.data.split("|");  //data[1]为设备的个数，data[0]为返回码
+                        console.log(data[1]);
+                        var fun=data[0].slice(10,12);    //fun截取出回复码
+                        console.log(fun);
+                        if(data[1].length<2)
+                        {
+                            if(fun=="11")
+                                receiveMsg.innerHTML = html + "<br/>" + "服务不支持"+data[0];
+                            else
+                            receiveMsg.innerHTML = html + "<br/>" + "读取失败"+data[0];
+                        }
+                        // else if(fun=="11")
+                        // receiveMsg.innerHTML = html + "<br/>" + "服务不支持";
+                        else
+                            receiveMsg.innerHTML = html + "<br/>" + "CRC校验成功"+data[0];
+                    }
+            } else {
+                alert("浏览器不支持websocket协议...");
+            }
+        },
+        chat: function() {
+            var msg = document.getElementById("msgContent");
+            CHAT.socket.send(msg.value);
+            console.log("发送成功");
+        }
+    };
+    CHAT.init();
+
+</script>
+
+<body>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
+    <legend>消防主机</legend>
+</fieldset>
+
+<div class="layui-tab layui-tab-brief" lay-filter="demo">
+    <ul class="layui-tab-title">
+        <li class="layui-this">系统信息</li>
+        <li>故障信息</li>
+        <li>分区信息</li>
+        <li>探测器信息</li>
+        <li>灭火器信息</li>
+    </ul>
+    <div class="layui-tab-content" style="height: 280px;">
+        <div class="layui-tab-item layui-show">
+            <form class="layui-form" action="">
+            <div class="layui-form-item">
+                <label class="layui-form-label">总报警个数</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="alarms" required  lay-verify="required" placeholder="请输入总报警个数" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">总故障个数</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="failures" required  lay-verify="required" placeholder="请输入总故障个数" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">总探测器个数</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="detectors" required  lay-verify="required" placeholder="请输入总探测器个数" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+            </form>
+        </div>
+        <div class="layui-tab-item ">
+            <form class="layui-form" action="">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">防护区1</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="pz1" required  lay-verify="required" placeholder="请输入防护区" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">防护区2</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="pz2" required  lay-verify="required" placeholder="请输入防护区" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">设备类型1</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="devicetype1" required  lay-verify="required" placeholder="请输入设备类型" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">设备类型2</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="devicetype2" required  lay-verify="required" placeholder="请输入设备类型" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">设备编号1</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="deviceid1" required  lay-verify="required" placeholder="请输入设备编号" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">设备编号2</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="deviceid2" required  lay-verify="required" placeholder="请输入设备编号" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">故障码1</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="troublecode1" required  lay-verify="required" placeholder="请输入故障码" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">故障码2</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="troublecode2" required  lay-verify="required" placeholder="请输入故障码" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="layui-tab-item">
+            <form class="layui-form" action="">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">防护区</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="pz3" required  lay-verify="required" placeholder="请输入防护区" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">报警级别</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="Alarmlevel" required  lay-verify="required" placeholder="请输入报警级别" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">故障</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="Fault" required  lay-verify="required" placeholder="请输入故障" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">手动模式</label>
+                    <div class="layui-input-inline">
+                        <select type="text" id="Manualmode" required  lay-verify="required" placeholder="请输入是否手动模式" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">自动模式</label>
+                    <div class="layui-input-inline">
+                        <select type="text" id="Automaticmode" required  lay-verify="required" placeholder="请输入是否自动模式" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label">手动启动</label>
+                    <div class="layui-input-inline">
+                        <select type="text" id="Manualstart" required  lay-verify="required" placeholder="请输入是否手动启动" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">手动急停</label>
+                    <div class="layui-input-inline">
+                        <select type="text" id="Manualstop" required  lay-verify="required" placeholder="请输入是否手动急停" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label">启动控制</label>
+                    <div class="layui-input-inline">
+                        <select type="text" id="Startcontrol" required  lay-verify="required" placeholder="请输入是否启动控制" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">延时</label>
+                    <div class="layui-input-inline">
+                        <select type="text" id="Delay" required  lay-verify="required" placeholder="请输入是否延时" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label">延时时间</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="Delaytime" required  lay-verify="required" placeholder="请输入延时时间" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">启动喷洒</label>
+                    <div class="layui-input-inline">
+                        <select type="text" id="Startspray" required  lay-verify="required" placeholder="请输入是否启动喷洒" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label">喷洒</label>
+                    <div class="layui-input-inline">
+                        <select type="text" id="spray" required  lay-verify="required" placeholder="请输入是否喷洒" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="layui-tab-item">
+            <form class="layui-form" action="">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">防护区</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="pz4" required  lay-verify="required" placeholder="请输入防护区" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">设备类型</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="devicetype" required  lay-verify="required" placeholder="请输入设备类型" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">ID</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="ID" required  lay-verify="required" placeholder="请输入ID" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">报警等级</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="falarmlevel" required  lay-verify="required" placeholder="请输入报警等级" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">温度</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="temperature" required  lay-verify="required" placeholder="请输入温度" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">CO</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="CO" required  lay-verify="required" placeholder="请输入CO浓度" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">VOC</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="VOC" required  lay-verify="required" placeholder="请输入VOC" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">烟雾</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="smog" required  lay-verify="required" placeholder="请输入烟雾" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="layui-tab-item">
+            <form class="layui-form" action="">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">防护区</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="pz5" required  lay-verify="required" placeholder="请输入防护区" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">编号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="number1" required  lay-verify="required" placeholder="请输入编号" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">灭火器状态</label>
+                    <div class="layui-input-inline">
+<!--                        <input type="text" id="status1" required  lay-verify="required" placeholder="请输入灭火器状态" autocomplete="off" class="layui-input">-->
+                        <select type="text" id="status1" required  lay-verify="required" placeholder="请输入灭火器状态" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">编号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="number2" required  lay-verify="required" placeholder="请输入编号" autocomplete="off" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">灭火器状态</label>
+                    <div class="layui-input-inline">
+<!--                        <input type="text" id="status2" required  lay-verify="required" placeholder="请输入灭火器状态" autocomplete="off" class="layui-input">-->
+                        <select type="text" id="status2" required  lay-verify="required" placeholder="请输入灭火器状态" autocomplete="off" class="layui-select">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<br>
+<button class="layui-btn" onclick="getInputVal()">加载</button>
+<!--<input type="button" value="" onclick="getInputVal()">-->
+<div>发送消息:</div>
+<input  type="text" id="msgContent"/>
+
+<button class="layui-btn layui-btn-normal" onclick="CHAT.chat()">发送</button>
+<!--<button class="layui-btn layui-btn-normal" onclick="test()">测试</button>-->
+
+<!--<input type="button" value="点我发送" onclick="CHAT.chat()"/>-->
+
+<div>接受消息：</div>
+<div id="receiveMsg"></div>
+<div id="main" style="width: 600px;height:400px;"></div>
+<!--echart-->
+<!--<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+
+    // 指定图表的配置项和数据
+    var option = {
+        title: {
+            text: '第一个 ECharts 实例'
+        },
+        tooltip: {},
+        legend: {
+            data:['销量']
+        },
+        xAxis: {
+            data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+        },
+        yAxis: {},
+        series: [{
+            name: '销量',
+            type: 'bar',
+            data: [5, 20, 36, 10, 10, 20]
+        }]
+    };
+
+    // 使用刚指定的配置项和数据显示图表。
+    // myChart.setOption(option);
+    var ws = new WebSocket("ws://127.0.0.1:8081")
+    // 连接成功
+    ws.onopen = function () {
+       // alert('连接成功')
+    }
+    ws.onerror = function () {
+        alert("WebSocket连接发生错误")
+    };
+
+    // 接收到消息的回调方法
+    ws.onmessage = function (msg) {
+        console.log(
+            msg.data
+        );
+        var data = JSON.parse(msg.data)
+        option.series[0].data = data.message  //赋值
+        myChart.setOption(option);  //设置
+    }
+    // 自适应
+    window.onresize = function () {
+        myChart.resize()
+    }
+</script>-->
+<script src="../resources/layui/layui.js" charset="utf-8"></script>
+<script>
+    var index=0;
+    var id=1;
+    layui.use('element', function() {
+        var element = layui.element;
+        element.on('tab(demo)', function(data){
+            index=data.index;
+            //console.log(this); //当前Tab标题所在的原始DOM元素
+            // console.log(data.index); //得到当前Tab的所在下标
+            //console.log(data.elem); //得到当前的Tab大容器
+        });
+    });
+    function test()
+    {
+
+        // console.log(crc("0230"));
+        console.log(strToBinary("0211121"));
+        // console.log(stringToBytes("020305067"));
+    }
+   /* const CRC_TABLE = Array(256);
+
+    for (let i = 0; i < 256; ++i) {
+        let code = i;
+        for (let j = 0; j < 8; ++j) {
+            code = (code & 0x01 ? 0xEDB88320 ^ (code >>> 1) : (code >>> 1));
+        }
+        CRC_TABLE[i] = code;
+    }
+
+    const crc32 = text => {
+        let crc = -1;
+        for (let i = 0; i < text.length; ++i) {
+            const code = text.charCodeAt(i);
+            crc = CRC_TABLE[(code ^ crc) & 0xFF] ^ (crc >>> 8);
+        }
+        return (-1 ^ crc) >>> 0;
+    };*/
+    function strToBinary(str){    //转化为2进制数
+        var result = [];
+        var list = str.split("");
+        for(var i=0;i<list.length;i++){
+            if(i != 0){
+                // result.push(" ");
+            }
+            var item = list[i];
+            var binaryStr = item.charCodeAt().toString(2);
+            result.push(binaryStr);
+        }
+        var re= result.join("");
+        re=re+"0000";
+        // console.log(re);
+        // re.replace(/\s*/g,"")
+        var s=re.split("");
+        return s;
+    }
+    function crcal(str)   //CRC校验
+    {
+        var num=strToBinary(str);
+        // console.log(num);
+        var code=[];//保存转换后的整型字符串
+        let generatingCode=[1,0,1,1,1];
+        //方法一
+        num.forEach(item => {
+            // console.log(item)
+            code.push(+item);
+        });
+        console.log(code);
+        var len = code.length - 5 + 1;
+        for (var i = 0; i < len; i++) {
+        if (code[i] != 0) {
+            for (var j = 0; j < 5; j++) {
+                code[i + j] ^= generatingCode[j];
+            }
+        }
+    }
+        var res="";
+        for (var i = len; i < code.length; i++) {
+        res=res+code[i];
+    }
+        return res;
+    }
+    function getInputVal(){
+        var tid=id.toString(16);
+        if(tid.length<2)
+            tid="0"+tid;
+        if(index==0)
+        {
+            if(Math.round(Math.random()))   //生成的随机数如果是1，代表加载成功
+            {
+                var x=  document.getElementById("alarms").value;
+                x=parseInt(x,10)
+                x=x.toString(16);
+                while(x.length<4)
+                    x='0'+x;
+                console.log(x);
+                var y=  document.getElementById("failures").value; //获取id为html的元素
+                y=parseInt(y,10)
+                y=y.toString(16);
+                while(y.length<4)
+                    y='0'+y;
+                var z=  document.getElementById("detectors").value;
+                z=parseInt(z,10)
+                z=z.toString(16);
+                while(z.length<4)
+                    z='0'+z;
+                var content='03'+x+y+z;  //数据内容
+                var crc=crcal(content);
+                //tid占了两位  f占了14位
+                var f='QN27'+tid+
+                    '60001'+content+crc+"E";
+                console.log(crc);
+                console.log(f);
+                document.getElementById("msgContent").value=f;
+                id++;
+                // console.log(index);
+            }
+            else
+            {
+                var f="QN14"+tid+"60101001010E"
+                console.log(f);
+                document.getElementById("msgContent").value=f;  //读取失败
+                id++;
+            }
+        }
+        else if(index==1)  //故障
+        {
+            if(Math.round(Math.random()))
+            {
+                // devicetype2    deviceid1   troublecode1
+                var x1=  document.getElementById("pz1").value;
+                while(x1.length<2)
+                    x1='0'+x1;
+                var x2=  document.getElementById("pz2").value;
+                while(x2.length<2)
+                    x2='0'+x2;
+                var y1=  document.getElementById("devicetype1").value;
+                while(y1.length<2)
+                    y1='0'+y1;
+                var y2=  document.getElementById("devicetype2").value;
+                while(y2.length<2)
+                    y2='0'+y2;
+                var z1=  document.getElementById("deviceid1").value;
+                while(z1.length<2)
+                    z1='0'+z1;
+                var z2=  document.getElementById("deviceid2").value;
+                while(z2.length<2)
+                    z2='0'+z2;
+                var q1=  document.getElementById("troublecode1").value;
+                while(q1.length<2)
+                    q1='0'+q1;
+                var q2=  document.getElementById("troublecode2").value;
+                while(q2.length<2)
+                    q2='0'+q2;
+                var content="02"+x1+y1+z1+q1+x2+y2+z2+q2;
+                var crc=crcal(content);
+                var f="QN29"+tid+"70001"+content+crc+"E";
+                console.log(f);
+                console.log(crc);
+                document.getElementById("msgContent").value=f;  //读取成功
+                id++;
+            }
+            else {
+                var f="QN14"+tid+"70101000010E"
+                console.log(f);
+                document.getElementById("msgContent").value=f;  //读取失败
+                id++;
+            }
+        }
+        else if(index==2)
+        {
+            if(Math.round(Math.random()))
+            {
+                var x1=  document.getElementById("pz3").value;
+                x1=x1.padStart(2, '0');   //补足两位
+                console.log(x1);
+                // console.log(x1.padStart(2, '0'));
+                var x2=  document.getElementById("Alarmlevel").value;
+                x2=x2.padStart(2, '0');
+                console.log(x2);
+
+                var x3=  document.getElementById("Fault").value;
+                x3=x3.padStart(2, '0');
+                var x4=  document.getElementById("Manualmode").value;
+                x4=x4.padStart(2, '0');
+                var x5=  document.getElementById("Automaticmode").value;
+                x5=x5.padStart(2, '0');
+                var x6=  document.getElementById("Manualstart").value;
+                x6=x6.padStart(2, '0');
+                var x7=  document.getElementById("Manualstop").value;
+                x7=x7.padStart(2, '0');
+                var x8=  document.getElementById("Startcontrol").value;
+                x8=x8.padStart(2, '0');
+                var x9=  document.getElementById("Delay").value;
+                x9=x9.padStart(2, '0');
+                var x10=  document.getElementById("Delaytime").value;
+                x10=x10.padStart(2, '0');
+                var x11=  document.getElementById("Startspray").value;
+                x11=x11.padStart(2, '0');
+                var x12=  document.getElementById("spray").value;
+                x12=x12.padStart(2, '0');
+                var content="0b"+x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11+x12;
+                var crc=crcal(content);
+                var f="QN25"+tid+"80001"+content+crc+"E";
+                console.log(f);
+                console.log(crc);
+                document.getElementById("msgContent").value=f;  //读取成功
+                id++;
+            }
+            else
+            {
+                var f="QN14"+tid+"80101001011E"
+                console.log(f);
+                document.getElementById("msgContent").value=f;  //读取失败
+                id++;
+            }
+        }
+        else if(index==3)  //探测器信息
+        {
+            if(Math.round(Math.random()))
+            {
+                var x1=  document.getElementById("pz4").value;
+                while(x1.length<2)
+                    x1='0'+x1;
+                var x2=  document.getElementById("devicetype").value;
+                while(x2.length<2)
+                    x2='0'+x2;
+                var y1=  document.getElementById("ID").value;
+                while(y1.length<2)
+                    y1='0'+y1;
+                var y2=  document.getElementById("falarmlevel").value;
+                while(y2.length<2)
+                    y2='0'+y2;
+                var z1=  document.getElementById("temperature").value;
+                while(z1.length<2)
+                    z1='0'+z1;
+                var z2=  document.getElementById("CO").value;
+                while(z2.length<2)
+                    z2='0'+z2;
+                var q1=  document.getElementById("VOC").value;
+                while(q1.length<2)
+                    q1='0'+q1;
+                var q2=  document.getElementById("smog").value;
+                while(q2.length<2)
+                    q2='0'+q2;
+                var content="08"+x1+x2+y1+y2+z1+z2+q1+q2;
+                var crc=crcal(content);
+                var f="QN25"+tid+"90001"+content+crc+"E";
+                console.log(f);
+                console.log(crc);
+                document.getElementById("msgContent").value=f;  //读取成功
+                id++;
+            }
+            else
+            {
+                var f="QN14"+tid+"90101000100E"
+                console.log(f);
+                document.getElementById("msgContent").value=f;  //读取失败
+                id++;
+            }
+        }
+        else if(index==4)  //灭火器状态
+        {
+            if(Math.round(Math.random()))
+            {
+                var x1=  document.getElementById("pz5").value;
+                x1=x1.padStart(2, '0');
+                var x2=  document.getElementById("number1").value;
+                x2=x2.padStart(2, '0');
+                var x3=  document.getElementById("status1").value;
+                x3=x3.padStart(2, '0');
+                var x4=  document.getElementById("number2").value;
+                x4=x4.padStart(2, '0');
+                var x5=  document.getElementById("status2").value;
+                x5=x5.padStart(2, '0');
+                var content="02"+x1+x2+x3+x4+x5;
+                console.log(content);
+                var crc=crcal(content);
+                console.log(crc);   //12-
+                var f="QN25"+tid+"A0001"+content+crc+"E";
+                console.log(f);
+                document.getElementById("msgContent").value=f;  //读取成功
+                id++;
+            }
+            else {
+                var f="QN14"+tid+"A0101000111E"
+                console.log(f);
+                document.getElementById("msgContent").value=f;  //读取失败
+                id++;
+            }
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>服务器页面</title>
+    <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+</head>
+<body>
+<div>接受消息：</div>
+<div id="receiveMsg"></div>
+<div id="main" style="width: 600px;height:400px;"></div>
+<script type="text/javascript">
+    var testnames=[];    //类别数组（实际用来盛放X轴坐标值）
+    var testnums=[];
+    // var ws = new WebSocket("ws://192.168.43.136:8081")
+    var ws = new WebSocket("ws://localhost:8081")
+    // 连接成功
+    ws.onopen = function () {
+        // alert('连接成功')
+        console.log("连接建立成功...");
+         // ws.send("test")
+    }
+    ws.onerror = function () {
+        alert("WebSocket连接发生错误")
+    };
+
+    // 接收到消息的回调方法
+    ws.onmessage = function (msg) {
+       testnames=[];
+       testnums=[];
+        var receiveMsg = document.getElementById("receiveMsg");
+        var html = receiveMsg.innerHTML;
+        // var data = JSON.parse(msg.data)
+        var data=msg.data.split("|");  //data[1]为设备的个数，data[0]为返回码
+        console.log(data[1]);
+        // console.log(data);
+        var fdata=data[1].split("!");
+        console.log(fdata);
+        if(fdata.length>1)
+        {
+            for(var i=0;i<fdata.length;i++){
+                if(i%2==0)
+                    testnames.push(fdata[i]);    //挨个取出类别并填入类别数组
+                else
+                    testnums.push(fdata[i]);    //挨个取出销量并填入销量数组
+            }
+        }
+        receiveMsg.innerHTML = html + "<br/>" + fdata;
+        myChart.setOption({        //加载数据图表
+            xAxis: {
+                data: testnames
+            },
+            series: [{
+                // 根据名字对应到相应的系列
+                name: '数值',
+                data: testnums
+            }]
+        });
+        window.onresize = function () {
+            myChart.resize()
+        }
+        console.log(testnames);
+        // option.series[0].data = data.message  //赋值
+        // myChart.setOption(option);  //设置
+    }
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+
+    // 指定图表的配置项和数据
+    /*var option = {
+        title: {
+            text: '第一个 ECharts 实例'
+        },
+        tooltip: {},
+        legend: {
+            data:['销量']
+        },
+        xAxis: {
+            data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+        },
+        yAxis: {},
+        series: [{
+            name: '销量',
+            type: 'bar',
+            data: [5, 20, 36, 10, 10, 20]
+        }]
+    };*/
+    myChart.setOption({
+        title: {
+            text: '设备情况'
+        },
+        tooltip: {},
+        legend: {
+            data:['数值']
+        },
+        xAxis: {
+            data: []
+        },
+        yAxis: {},
+        series: [{
+            name: '数值',
+            type: 'bar',
+            data: []
+        }]
+    });
+
+
+    // 使用刚指定的配置项和数据显示图表。
+    //  myChart.setOption(option);
+</script>
+</body>
+</html>
